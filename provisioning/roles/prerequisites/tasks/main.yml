@@ -1,0 +1,15 @@
+- name: Install hardened kernel/headers
+  become: true
+  command: pacman -Syu --noconfirm linux-hardened linux-hardened-headers
+  register: hardened
+- name: Remove original kernel
+  become: true
+  command: pacman -Rs --noconfirm linux
+  when: hardened.changed
+  register: removal
+- name: Update GRUB
+  become: true
+  command: grub-mkconfig -o /boot/grub/grub.cfg
+  when: removal.changed
+  register: grub
+

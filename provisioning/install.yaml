@@ -1,0 +1,48 @@
+- hosts: master
+  connection: local
+  vars_files: "{{ playbook_dir }}/config.yaml"
+  tasks:
+    - name: Make module locally
+      command:
+        argv:
+          - make
+      args:
+        chdir: "{{ rootkit_src }}"
+      delegate_to: localhost
+    - name: Install module locally
+      command:
+        argv:
+          - make
+          - modules_install
+      args:
+        chdir: "{{ rootkit_src }}"
+      delegate_to: localhost
+      environment:
+        INSTALL_MOD_PATH: "{{ playbook_dir }}/roles/modules_install/files/kernel"
+- hosts: workers
+  vars_files: "{{ playbook_dir }}/config.yaml"
+  roles:
+    - prerequisites
+    - modules_install
+    #roles:
+    #- modules_install
+      #- hosts: rootkit1
+      #  tasks:
+      #    - name: Start server
+      #      command: ib_send_bw -b
+      #      async: 120
+      #      poll: 0
+      #      register: send_bw_srv
+      #- hosts: rootkit2
+      #  tasks:
+      #    - name: Start client
+      #      command: ib_send_bw -b rootkit1
+      #- hosts: rootkit1
+      #  tasks:
+      #    - name: Check back the server
+      #      async_status:
+      #        jid: "{{ send_bw_srv.ansible_job_id }}"
+      #      register: srv_result
+      #      until: srv_result.finished
+      #      retries: 10
+      #      delay: 5
